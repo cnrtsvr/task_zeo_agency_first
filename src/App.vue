@@ -74,7 +74,10 @@ export default {
       })
       */
       // Getting the copy of data from localhost as the server is down now.
-      this.$http.get('/data/data.json').then((response) => {
+      const requestUrl = process.env.NODE_ENV === 'production'
+          ? '/task_zeo_agency_first/data/data.json'
+          : '/data/data.json';
+      this.$http.get(requestUrl).then((response) => {
         let dateToNumber = (d) => {
           d = d.split("-"); return Number(d[0]+d[1]+d[2]);
         };
