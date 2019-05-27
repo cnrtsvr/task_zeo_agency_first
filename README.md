@@ -1,6 +1,8 @@
 # task_zeo_agency_first
 First Interview Task for Zeo Agency Turkey
 
+Online demo can be found on: https://cnrtsvr.github.io/task_zeo_agency_first/
+
 A Vue app that has a DataTable and a Chart component without any 3rd party libraries.
 
 * Getting data from server
