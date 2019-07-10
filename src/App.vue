@@ -28,15 +28,17 @@
 </template>
 
 <script>
-  import GridComponent from './components/GridComponent';
-  import ChartComponent from './components/ChartComponent'
+import GridComponent from './components/GridComponent';
+import ChartComponent from './components/ChartComponent';
+const getData = () => import('./data/data.json').then(m => m.default || m);
+
 export default {
   name: 'app',
   components: {
     GridComponent,
     ChartComponent
   },
-  data: function() {
+  data() {
     return {
       dateArray: [],
       initFinished: false,
@@ -47,7 +49,7 @@ export default {
       impressionsActive: true,
     };
   },
-  created: function() {
+  created() {
     this.httpGetData();
   },
   computed: {
@@ -63,7 +65,7 @@ export default {
     }
   },
   methods: {
-    httpGetData: function() {
+    async httpGetData() {
       /*
       let username = 'interview_1';
       let password = 'int_candidate12';
@@ -74,48 +76,48 @@ export default {
       })
       */
       // Getting the copy of data from localhost as the server is down now.
-      const requestUrl = process.env.NODE_ENV === 'production'
-          ? '/task_zeo_agency_first/data/data.json'
-          : '/data/data.json';
-      this.$http.get(requestUrl).then((response) => {
-        let dateToNumber = (d) => {
-          d = d.split("-"); return Number(d[0]+d[1]+d[2]);
-        };
-        for(let index in response.body){
-          const date = response.body[index].date;
-          if(this.dateArray.find(x => x.date === date)) {
-            let obj = this.dateArray.find(x => x.date === date);
-            obj.clicks += response.body[index].clicks;
-            obj.impressions += response.body[index].impressions;
-          } else {
-            const obj = {
-              date: date,
-              clicks: response.body[index].clicks,
-              impressions: response.body[index].impressions
-            };
-            this.dateArray.push(obj);
-          }
-          this.totalClicks += response.body[index].clicks;
-          this.totalImpressions += response.body[index].impressions;
-          let keyword = response.body[index].keyword;
-          if(this.gridData.find(x => x.keyword === keyword)) {
-            let obj = this.gridData.find(x => x.keyword === keyword);
-            obj.clicks += response.body[index].clicks;
-            obj.impressions += response.body[index].impressions;
-          } else {
-            const obj = {
-              keyword: keyword,
-              clicks: response.body[index].clicks,
-              impressions: response.body[index].impressions
-            };
-            this.gridData.push(obj);
-          }
-        }
-        this.dateArray.sort((a,b)=> {return dateToNumber(a.date) - dateToNumber(b.date);});
-        this.initFinished = true;
-      });
+      const data = await getData();
+      this.analyzeData(data);
+      this.initFinished = true;
     },
-    onDocumentMouseMove: function (e) {
+    dateToNumber(d) {
+      d = d.split("-");
+      return Number(d[0]+d[1]+d[2]);
+    },
+    analyzeData(data) {
+      Object.values(data).forEach(item => {
+        const date = item.date;
+        if(this.dateArray.find(x => x.date === date)) {
+          let obj = this.dateArray.find(x => x.date === date);
+          obj.clicks += item.clicks;
+          obj.impressions += item.impressions;
+        } else {
+          const obj = {
+            date: date,
+            clicks: item.clicks,
+            impressions: item.impressions
+          };
+          this.dateArray.push(obj);
+        }
+        this.totalClicks += item.clicks;
+        this.totalImpressions += item.impressions;
+        let keyword = item.keyword;
+        if(this.gridData.find(x => x.keyword === keyword)) {
+          let obj = this.gridData.find(x => x.keyword === keyword);
+          obj.clicks += item.clicks;
+          obj.impressions += item.impressions;
+        } else {
+          const obj = {
+            keyword: keyword,
+            clicks: item.clicks,
+            impressions: item.impressions
+          };
+          this.gridData.push(obj);
+        }
+      });
+      this.dateArray.sort((a,b)=> {return this.dateToNumber(a.date) - this.dateToNumber(b.date);});
+    },
+    onDocumentMouseMove(e){
         document.getElementById('info-box').style.top = (e.pageY - document.getElementById('info-box').clientHeight-30).toString() + 'px';
         document.getElementById('info-box').style.left = (e.pageX -(document.getElementById('info-box').clientWidth)/2).toString() + 'px';
     }
